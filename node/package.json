@@ -1,0 +1,20 @@
+{
+  "name": "textanalysistool",
+  "version": "0.0.1",
+  "description": "spin-off from exercise for MB integration with happi/apollo/python",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^1.2.0",
+    "handlebars": "^3.0.3",
+    "hapi": "^10.0.0",
+    "inert": "^3.0.1",
+    "socket.io": "^1.7.4",
+    "stomp-client": "^0.8.0",
+    "vision": "^3.0.0"
+  }
+}

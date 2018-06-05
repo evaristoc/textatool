@@ -1,9 +1,9 @@
+import os
 import re
 import nltk
 import json
-with open('../config/development/nlktdatadir.json', 'r') as d:
-	nlktdatadir = json.load(d)
-nltk.data.path.append(nlktdatadir['nlktdatadir'])
+print("in the other",os.getenv("TEST_MULTILINE_VAR"))
+nltk.data.path.append(os.getenv("NLTKDATADIR"))
 from nltk.corpus import stopwords
 from bs4 import BeautifulSoup
 import copy
@@ -11,74 +11,76 @@ import math
 
 
 def allrecordsPreparation(allrecords):
-    '''
-    description: tokenization and POS tagging
-    input: dict of allrecords texts and data from different sources
-    treatment: separating only those with posts in the forum and tokenizing the posts
-    output:
-        1) list of lists, each with:
-        -- id
-        -- username
-        -- link of the post
-        -- tokenized text
-        -- POS tagged text
-        2) list of post ids
-    '''
-    print('in allrecordsPreparation (len(allrecords))::',len(allrecords))
-    #global var to this scope
-    #forum_tonltk = []
-    tktexts = []
-    soup_forum = None
-    forum_ids = []
-    all_posedsts = []
-    count = 0
-    for u in allrecords:
-        #block arguments
-        record = allrecords[u]
-        forumpost = record['forum']['foundjob_msg']['text']
-        if forumpost == '':
-            continue
-        forumpostID = record['forum']['foundjob_msg']['id']
-        forumpostLINK = record['forum']['foundjob_msg']['link']
-        soup_forumpost = BeautifulSoup(forumpost)
-        soup_forumpostTEXT = soup_forumpost.find('body').get_text()
-        tksoup_forumpostTEXT = nltk.word_tokenize(soup_forumpostTEXT)
-        
-        #forum_tonltk.append(soup_forumpostTEXT)
-        
-        #listoftexts_forum.append(('f_'+forumpostID,
-        #                          [w.lower() for w in tksoup_forumpostTEXT],
-        #                          forumpostLINK,
-        #                          u))
-        
-        modtext = []
-        for w in tksoup_forumpostTEXT:
-            w = w.lower()
-            rws = []
-            if len(w) > 1 and len({'.','-',':'}.intersection(w)) >= 1:
-                #print(w)
-                for punc in {'.','-',':'}.intersection(w):
-                    rws = w.replace(punc, ' '+punc+' ').split()
-                #print(rws)
-            if len(rws) == 0:
-                modtext.append(w)
-            else:
-                for w in rws:
-                    modtext.append(w)
-                
-        #[w.lower() for w in nltk.word_tokenize(soup_forum.find('body').get_text())]
-        all_posedsts.append((
-                            'f_'+forumpostID,
-                            u,
-                            forumpostLINK,
-                            modtext,
-                            nltk.pos_tag(modtext)
-                            ))
-        forum_ids.append(forumpostID)
-        count += 1
-    
-    print("number of treated posts (len(count)) ::", count)
-    return all_posedsts, forum_ids
+	'''
+	description: tokenization and POS tagging
+	input: dict of allrecords texts and data from different sources
+	treatment: separating only those with posts in the forum and tokenizing the posts
+	output:
+	1) list of lists, each with:
+	-- id
+	-- username
+	-- link of the post
+	-- tokenized text
+	-- POS tagged text
+	2) list of post ids
+	'''
+	print('in allrecordsPreparation (len(allrecords))::',len(allrecords))
+	#global var to this scope
+	#forum_tonltk = []
+	tktexts = []
+	soup_forum = None
+	forum_ids = []
+	all_posedsts = []
+	count = 0
+	for u in allrecords:
+		#block arguments
+		record = allrecords[u]
+		forumpost = record['forum']['foundjob_msg']['text']
+		if forumpost == '':
+			continue
+		forumpostID = record['forum']['foundjob_msg']['id']
+		forumpostLINK = record['forum']['foundjob_msg']['link']
+		soup_forumpost = BeautifulSoup(forumpost)
+		soup_forumpostTEXT = soup_forumpost.find('body').get_text()
+		tksoup_forumpostTEXT = nltk.word_tokenize(soup_forumpostTEXT)
+		
+		#forum_tonltk.append(soup_forumpostTEXT)
+		
+		#listoftexts_forum.append(('f_'+forumpostID,
+		#                          [w.lower() for w in tksoup_forumpostTEXT],
+		#                          forumpostLINK,
+		#                          u))
+		
+		modtext = []
+		for w in tksoup_forumpostTEXT:
+			w = w.lower()
+			rws = []
+			if len(w) > 1 and len({'.','-',':'}.intersection(w)) >= 1:
+				#print(w)
+				for punc in {'.','-',':'}.intersection(w):
+					rws = w.replace(punc, ' '+punc+' ').split()
+				#print(rws)
+			if len(rws) == 0:
+				modtext.append(w)
+			else:
+				for w in rws:
+					modtext.append(w)
+			
+		#[w.lower() for w in nltk.word_tokenize(soup_forum.find('body').get_text())]
+		all_posedsts.append((
+							'f_'+forumpostID,
+							u,
+							forumpostLINK,
+							modtext,
+							nltk.pos_tag(modtext)
+							))
+		#forum_ids.append(forumpostID)
+	
+		count += 1
+
+	print("number of treated posts (len(count)) ::", count)
+	#return all_posedsts, forum_ids
+	return all_posedsts
 
 def allrecordsLemmatization(all_posedsts):
     '''
@@ -131,7 +133,7 @@ def allrecordsLemmatization(all_posedsts):
     
     all_fd = nltk.FreqDist(allnorm_posedwords)
     
-    return norm_posedsts, all_fd
+    return all_posedsts, norm_posedsts, all_fd
 
 # def normalization(norm_posedsts):
 # 
@@ -233,23 +235,27 @@ def savingdata(fn,o,d,func):
             func(d, f_out)
             
 
-if __name__ == '__main__':
-    
-    import pickle,json
+#######################
+#### TESTING ##########
+#######################
 
-   
-    # with open('../data/data_foundjob.pkl', 'rb') as f_in:
-    #     allrecords = pickle.load(f_in)
-    # 
-    # 
-    # fn = '../data/jobproject_forum.json'
-    # o = 'a'
-    # d = allrecords
-    # func = json.dump  
-    # savingdata(fn,o,d,func)
-    
-    with open('../data/jobproject_forum.json', 'r') as f_in:
-        allrecords = json.load(f_in)
-        
-    
-    #allposedsts, forum_ids = allrecordsPreparation(allrecords)
+# if __name__ == '__main__':
+#     
+#     import pickle,json
+# 
+#    
+#     # with open('../data/data_foundjob.pkl', 'rb') as f_in:
+#     #     allrecords = pickle.load(f_in)
+#     # 
+#     # 
+#     # fn = '../data/jobproject_forum.json'
+#     # o = 'a'
+#     # d = allrecords
+#     # func = json.dump  
+#     # savingdata(fn,o,d,func)
+#     
+#     with open('../data/jobproject_forum.json', 'r') as f_in:
+#         allrecords = json.load(f_in)
+#         
+#     
+#     #allposedsts, forum_ids = allrecordsPreparation(allrecords)

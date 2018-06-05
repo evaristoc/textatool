@@ -4,6 +4,11 @@ description:
 """
 
 import sys, os
+
+from dotenv import load_dotenv
+load_dotenv(dotenv_path='../.env')
+load_dotenv()
+
 import pickle, json
 import stomp
 import time
@@ -11,11 +16,15 @@ import processingData
 import collections, itertools, copy, operator
 
 
+
+print(os.getenv("TEST_MULTILINE_VAR"))
+sys.exit()
+
 done = False
 
 # Set Apollo Username/Password
-apollo_user = "TOFILLIN"
-apollo_pass = "TOFILLIN"
+apollo_user = os.getenv("ActiveMQUSER")
+apollo_pass = os.getenv("ActiveMQPASS")
 
 class MyListener(object):
 	def __init__(self):
@@ -26,19 +35,19 @@ class MyListener(object):
 	def on_message(self, headers, message):
 		if(self.done == False):
 			otp = json.loads(message)
-			fn = processDataFunctionality(otp)
-			conn.send(body=json.dump(fn), destination='/queue/fromPython')
+			fn = jsonbuilding(processingData.allrecordsLemmatization(processingData.allrecordsPreparation(otp)))
+			conn.send(body=json.dump(fn), destination='/queue/withPython')
 			self.done = True
 	def on_disconnected(self):
 		print("Connecting to Apollo")	
 
-conn = stomp.Connection([('TO.FILL.IN',34534543523325)])
+conn = stomp.Connection([(os.getenv("ActiveMQIP"),os.getenv("ActiveMQPORT"))])
 conn.set_listener('', MyListener())
 conn.start()
 conn.connect(apollo_user, apollo_pass)
 connected = True
 
-conn.subscribe(destination='/queue/toPython', id=1)
+conn.subscribe(destination='/queue/inPython', id=1)
 
 # Keeps this script going on an endless loop
 def runServer():

@@ -34,7 +34,7 @@ class MyListener(object):
 		print('received an error')
 	def on_message(self, headers, message):
 		if(self.done == False):
-			otp = json.loads(message)
+			otp = json.load(message)
 			al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(otp))
 			fn = processingData.jsonbuilding(al, nor, fd)
 			conn.send(body=json.dump(fn), destination='/queue/withPython')

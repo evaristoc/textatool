@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Cards Printer</title>
+    <!--<link rel="stylesheet" href="../public/css/style.css">-->
+    <!--we change route directory a bit for line just above because it is now set in the server template path-->
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link href="http://cdn.rawgit.com/noelboss/featherlight/1.3.2/release/featherlight.min.css" type="text/css" rel="stylesheet" title="Featherlight Styles" />
+    <!-- required for socket to work!!! -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.2/featherlight.min.js"></script>
+    <script>
+        //https://stackoverflow.com/questions/5963045/can-syntax-errors-be-caught-in-javascript
+        window.oneerror = function(e) {
+            console.log('Window Error ', e)
+        };
+    </script>
+    <script>
+        $(function() {
+            var socket = io.connect();
+        })
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Text Analysis Service</h1>
+        </div>
+        <div class="controls">
+            <!--<a href="#" id="processBtn" class="inactive">Process 100 Cards</a>-->
+            <!--we change route directory a bit for line just above to pass number of Cards as a variable in handlebars-->
+            <a href="#" id="processBtn" class="inactive">Process {{recordCount}} Texts</a>
+        </div>
+        <div class="outputList">
+
+        </div>
+    </div>
+</body>
+
+</html>

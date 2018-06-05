@@ -25,7 +25,7 @@ function midware(server, options, next) {
     // "start": "node --harmony-spreadcalls index.js
 
     /// Socket ///
-    const io = SocketIO(server.listener);
+    //const io = SocketIO(server.listener);
 
     //////////////////
     //loading Stomp 1 //

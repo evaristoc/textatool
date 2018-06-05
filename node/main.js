@@ -1,6 +1,7 @@
 'use strict';
 const Path = require('path');
-require('dotenv').config({ path: Path.dirname(process.cwd()) }); //environment variables managed by 3rd party package
+require('dotenv').config({ path: Path.join(__dirname, '../.env') })
+
 const Hapi = require('hapi');
 
 const server = new Hapi.Server();

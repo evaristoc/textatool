@@ -1,8 +1,8 @@
 const helloGET = {
     method: 'GET',
-    path: '/',
+    path: '/hello',
     handler: (request, reply) => {
-        //reply('<h1>HELLO, hapi!!</h1>');
+        reply('<h1>HELLO, hapi!!</h1>');
     }
 };
 
@@ -13,10 +13,10 @@ var indexProject = function(options) {
         handler: (request, reply) => {
             //reply('<h1>HELLO, hapi!!</h1>');
             reply.view('index', { //using the handlebars template now
-                recordCount: options.data.length, // we are creating this AFTER we set the use of data through the `options` attribute
-            });
-        }
-    }
+                recordCount: () => { return Object.keys(options.data).length; },
+            }); // we are creating this AFTER we set the use of data through the `options` attribute
+        },
+    };
 };
 
 //for Hapi, we need to create a route to get the css from public folder(!!!???)
@@ -31,18 +31,6 @@ const cssProject = {
     }
 };
 
-const imgProject = {
-    method: 'GET',
-    path: '/output/{param*}',
-    handler: {
-        directory: {
-            path: '../output'
-        },
-    }
-};
-
-
-
 module.exports = function(options) { // we NEED to add an argument `options` so it is available to the `indexProject` router when in the `core` module
     //console.error('THIS IS OPTIONS', options.length);
     //console.error('Arguments ', typeof arguments[0]['data'].length);
@@ -50,6 +38,5 @@ module.exports = function(options) { // we NEED to add an argument `options` so 
         //helloGET,
         indexProject(options),
         cssProject,
-        imgProject,
     ]
 };

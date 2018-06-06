@@ -18,7 +18,7 @@ import collections, itertools, copy, operator
 
 
 print(os.getenv("TEST_MULTILINE_VAR"))
-sys.exit()
+#sys.exit()
 
 done = False
 
@@ -34,7 +34,8 @@ class MyListener(object):
 		print('received an error')
 	def on_message(self, headers, message):
 		if(self.done == False):
-			otp = json.load(message)
+			otp = json.loads(message)
+			print(len(otp))
 			al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(otp))
 			fn = processingData.jsonbuilding(al, nor, fd)
 			for rcd in fn:

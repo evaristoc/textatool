@@ -25,7 +25,7 @@ function midware(server, options, next) {
     // "start": "node --harmony-spreadcalls index.js
 
     /// Socket ///
-    //const io = SocketIO(server.listener);
+    const io = SocketIO(server.listener);
 
     //////////////////
     //loading Stomp 1 //
@@ -36,6 +36,29 @@ function midware(server, options, next) {
     // sC.connect(sessionId => { //callback fired only if successful connection; now moved to stompClient
     //     console.log('Connected to Apache Apollo');
     // });
+
+    //////////////////
+    //loading Stomp 3 //
+    //////////////////
+
+
+    function stompClient() {
+        return new Promise((resolve, reject) => {
+                sC.connect(sessionId => { //callback fired only if successful connection
+                    console.log('Connected to Apache Apollo ::', sessionId);
+                    sC.subscribe(inQueue, body => { //if connect ok, subscribe
+                        itemArray.push(body);
+                        observe.emit("set");
+                    });
+                    resolve(sessionId, sC); //finally if connect ok, resolve by passing the subscribed sC and its session to the next step
+                });
+            },
+            error => {
+                reject(error);
+            }
+        )
+    };
+
 
     ////////////////////
     // Loading Socket 2 //
@@ -68,10 +91,11 @@ function midware(server, options, next) {
             ////////////////////////
             socket.on('begin', () => {
                 let forum = Object.keys(options.data).map((k) => {
-                    if (options.data[k].forum.foundjob_msg.text != "") {
-                        return { "user": k, "data": options.data[k] }
-                    }
-                }, [])
+                        return { "user": k, "data": options.data[k] };
+                    }, [])
+                    .filter((r) => {
+                        return r.data.forum.foundjob_msg.text != "";
+                    }, [])
                 sC.publish(outQueue, JSON.stringify(forum)); //`options` is recevied by the MAIN aapp !!
             });
 
@@ -81,13 +105,24 @@ function midware(server, options, next) {
             // Watch the intemArray for changes
             observe.on('set', () => { //this emit doesnt compete with the emit in ~line 132 because this only works when set is available
                 //console.log(itemArray[itemArray.length - 1]);
-                console.log(itemArray[itemArray.length - 1]);
-                //socket.emit('item', {
-                //    dataArray: itemArray[itemArray.length - 1],
-                //})
+                //console.log(itemArray[itemArray.length - 1]);
+                socket.emit('item', {
+                    dataArray: itemArray[itemArray.length - 1],
+                })
             })
         });
     };
+
+    //////////////////////////////////////////
+    // Initiating connections with promises //
+    //////////////////////////////////////////
+
+    stompClient()
+        .then(ioConnect) //ioConnect doesn't receive anything from stompClient because itemArray is GLOBAL to this scope; it works becase the promise will keep listening until the whole data is brought back from Python
+        .catch(err => {
+            console.log('An error has ocurred during the connection to Stomp ::', err);
+        })
+
 
 
     return next();

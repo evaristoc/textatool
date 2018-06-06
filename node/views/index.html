@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Cards Printer</title>
+    <title>Text Analysis</title>
     <!--<link rel="stylesheet" href="../public/css/style.css">-->
     <!--we change route directory a bit for line just above because it is now set in the server template path-->
     <link rel="stylesheet" href="/public/css/style.css">
@@ -25,6 +25,65 @@
             var render;
             var outputList = $(".outputList");
             var counter = 1;
+
+
+            function renderTemplate(data) {
+                //console.log(data);
+                var template = "<div class='entity'><p class='serialNo'>" + counter + ". </p><p class='author'>" + data.author + "</p><a href='#' class='linkTitle'>" + data.link + "</a></div>"
+                counter++;
+                //console.log(template);
+                return template;
+            };
+
+
+            socket.on("buttonState", function(data) {
+                if (data.state) {
+                    processBtn.removeClass("inactive");
+                } else {
+                    processBtn.addClass("inactive");
+                };
+            });
+
+            socket.on("item", function(data) {
+                //console.log(JSON.parse(data.dataArray));
+                try {
+                    parsed = JSON.parse(data.dataArray);
+                    //console.log(parsed);
+                    render = renderTemplate(parsed);
+                    outputList.append(render);
+                } catch (e) {
+                    if (e instanceof SyntaxError) {
+                        console.log("I caught a pesky SyntaxError! I'll handle it specifically here.");
+                        parsed = null;
+                    } else {
+                        console.log("I caught an error, but it wasn't a SyntaxError. I handle all non-SyntaxErrors here.");
+                    }
+                }
+                //console.log(JSON.parse(data.dataArray));
+                //if (parsed != null) {
+                //    console.log(parsed);
+                //    render = renderTemplate(parsed);
+                //    outputList.append(render);
+                //};
+            });
+
+            socket.on("allData", function(data) {
+                var itemList = "";
+                data.dataArray.map(function(item) {
+                    itemList += renderTemplate(JSON.parse(item));
+                });
+                outputList.html(itemList);
+            });
+
+            processBtn.on("click", function(evt) {
+                evt.preventDefault();
+                $(this).addClass("inactive");
+                console.log('click');
+                //Start sending the data to Apollo
+                socket.emit('begin');
+            });
+
+
         })
     </script>
 </head>

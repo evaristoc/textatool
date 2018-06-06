@@ -34,7 +34,7 @@ def allrecordsPreparation(allrecords):
 	count = 0
 	for u in allrecords:
 		#block arguments
-		record = allrecords[u]
+		record = u["data"]
 		forumpost = record['forum']['foundjob_msg']['text']
 		if forumpost == '':
 			continue
@@ -69,7 +69,7 @@ def allrecordsPreparation(allrecords):
 		#[w.lower() for w in nltk.word_tokenize(soup_forum.find('body').get_text())]
 		all_posedsts.append((
 							'f_'+forumpostID,
-							u,
+							u["user"],
 							forumpostLINK,
 							modtext,
 							nltk.pos_tag(modtext)
@@ -150,35 +150,35 @@ def allrecordsLemmatization(all_posedsts):
 #     
 #     return all_fd
 
-def htmlpagebuilding(all_posedsts, norm_posedsts, all_fd):
-    '''
-    description: creating an html of a lemmatized text highlighting lemmatized words that are LESS common to corpora
-    input:
-        1) tokenized list of texts
-        2) same list as above but with lemmatized words
-        3) freqDist of lemmatized words
-    output: html template; highlighting based on opacity
-    '''
-    html_test = ''
-    maxdiv = math.log(sorted(all_fd.items(), key=lambda x: x[1], reverse=True)[0][1])
-
-    for i,norm_t in enumerate(norm_posedsts):
-        
-        if all_posedsts[i][1] != 'gcamacho079':
-            continue
-        else:
-        
-            doc_df = nltk.FreqDist(t)
-            
-            html_test=html_test+'<h3> TEXT '+str(i)+'</h3><p><a href='+all_posedsts[i][2][:-5]+'>link</a> by '+all_posedsts[i][1]+'</p><p>'
-            for w in norm_t:
-                opacity_based_on_tfish = str(1-math.log(all_fd[w])/maxdiv)[:3]
-                size_based_on_tfish = str((1-all_fd[w]/maxdiv)*20)[:3]
-                html_test=html_test+"<span style='opacity:"+opacity_based_on_tfish+";'>"+w+" </span>"
-                if w == '.':
-                    html_test=html_test+'</p><p>'
-            html_test=html_test+'<br>'
-            return html_test
+# def htmlpagebuilding(all_posedsts, norm_posedsts, all_fd):
+#     '''
+#     description: creating an html of a lemmatized text highlighting lemmatized words that are LESS common to corpora
+#     input:
+#         1) tokenized list of texts
+#         2) same list as above but with lemmatized words
+#         3) freqDist of lemmatized words
+#     output: html template; highlighting based on opacity
+#     '''
+#     html_test = ''
+#     maxdiv = math.log(sorted(all_fd.items(), key=lambda x: x[1], reverse=True)[0][1])
+# 
+#     for i,norm_t in enumerate(norm_posedsts):
+#         
+#         if all_posedsts[i][1] != 'gcamacho079':
+#             continue
+#         else:
+#         
+#             doc_df = nltk.FreqDist(t)
+#             
+#             html_test=html_test+'<h3> TEXT '+str(i)+'</h3><p><a href='+all_posedsts[i][2][:-5]+'>link</a> by '+all_posedsts[i][1]+'</p><p>'
+#             for w in norm_t:
+#                 opacity_based_on_tfish = str(1-math.log(all_fd[w])/maxdiv)[:3]
+#                 size_based_on_tfish = str((1-all_fd[w]/maxdiv)*20)[:3]
+#                 html_test=html_test+"<span style='opacity:"+opacity_based_on_tfish+";'>"+w+" </span>"
+#                 if w == '.':
+#                     html_test=html_test+'</p><p>'
+#             html_test=html_test+'<br>'
+#             return html_test
 
 
 
@@ -218,21 +218,21 @@ def jsonbuilding(all_posedsts, norm_posedsts, all_fd):
     return data_out
 
 
+# # 
+# def savingdata(fn,o,d,func):
+#     import os
+#     if os.path.isfile(fn):
+#         yn = input('This will overwrite file '+fn+'. Do you want to proceed? Y(es); other character to abort ----   ')
+#         if yn == 'Y':
+#             with open(fn, o) as f_out:
+#                 func(d, f_out)
+#         else:
+#             print()
+#             print('----------- Action Aborted')
 # 
-def savingdata(fn,o,d,func):
-    import os
-    if os.path.isfile(fn):
-        yn = input('This will overwrite file '+fn+'. Do you want to proceed? Y(es); other character to abort ----   ')
-        if yn == 'Y':
-            with open(fn, o) as f_out:
-                func(d, f_out)
-        else:
-            print()
-            print('----------- Action Aborted')
-
-    else:
-        with open(fn, o) as f_out:
-            func(d, f_out)
+#     else:
+#         with open(fn, o) as f_out:
+#             func(d, f_out)
             
 
 #######################

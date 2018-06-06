@@ -37,7 +37,9 @@ class MyListener(object):
 			otp = json.load(message)
 			al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(otp))
 			fn = processingData.jsonbuilding(al, nor, fd)
-			conn.send(body=json.dump(fn), destination='/queue/withPython')
+			for rcd in fn:
+				print(rcd['author'])
+				conn.send(body=json.dumps(rcd), destination='/queue/withPython')
 			self.done = True
 	def on_disconnected(self):
 		print("Connecting to Apollo")	

@@ -13,7 +13,10 @@ var indexProject = function(options) {
         handler: (request, reply) => {
             //reply('<h1>HELLO, hapi!!</h1>');
             reply.view('index', { //using the handlebars template now
-                recordCount: () => { return Object.keys(options.data).length; },
+                recordCount: () => {
+                    let forum = Object.keys(options.data).filter((k) => { return options.data[k].forum.foundjob_msg.text != "" }, [])
+                    return forum.length;
+                },
             }); // we are creating this AFTER we set the use of data through the `options` attribute
         },
     };

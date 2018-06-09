@@ -2,8 +2,13 @@
 //this plugin is where connection with PYTHON is being created; it is then a SERVICE
 const SocketIO = require('socket.io');
 const Stomp = require('stomp-client');
+const fs = require('fs');
+const Path = require('path');
+//console.log(__dirname);
+//console.log(process.cwd());
 const events = require('events');
 const observe = new events.EventEmitter();
+var end;
 
 function midware(server, options, next) {
     /////////////////////////
@@ -49,6 +54,15 @@ function midware(server, options, next) {
                     sC.subscribe(inQueue, body => { //if connect ok, subscribe
                         itemArray.push(body);
                         observe.emit("set");
+                        if (itemArray.length == end) {
+                            //https://activemq.apache.org/apollo/documentation/stomp-manual.html
+                            //https://stackoverflow.com/questions/2496710/writing-files-in-node-js
+                            fs.writeFile('../output/output.json', JSON.stringify(itemArray), function(err) {
+                                if (err)
+                                    return console.log(err);
+                                console.log('Wrote json of itemArray in file output.json, just check it');
+                            });
+                        }
                     });
                     resolve(sessionId, sC); //finally if connect ok, resolve by passing the subscribed sC and its session to the next step
                 });
@@ -95,7 +109,8 @@ function midware(server, options, next) {
                     }, [])
                     .filter((r) => {
                         return r.data.forum.foundjob_msg.text != "";
-                    }, [])
+                    }, []);
+                end = forum.length;
                 sC.publish(outQueue, JSON.stringify(forum)); //`options` is recevied by the MAIN aapp !!
             });
 
@@ -122,7 +137,6 @@ function midware(server, options, next) {
         .catch(err => {
             console.log('An error has ocurred during the connection to Stomp ::', err);
         })
-
 
 
     return next();

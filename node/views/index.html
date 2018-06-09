@@ -29,7 +29,8 @@
 
             function renderTemplate(data) {
                 //console.log(data);
-                var template = "<div class='entity'><p class='serialNo'>" + counter + ". </p><p class='author'>" + data.author + "</p><a href='#' class='linkTitle'>" + data.link + "</a></div>"
+                //var template = "<tr><td class='serialNo'>" + counter + ". </td><td class='author'>" + data.author + "</td><td class='linkTitle'><a href='#'>Link to the Post</a></td><td><button id=" + data.author + ">SEE MORE</button></td></tr>"
+                var template = "<tr class='entity'><td class='serialNo'>" + counter + ". </td><td class='author'>" + data.author + "</td><td>Link: " + data.link + "</td><td><button id=" + data.author + ">SEE MORE</button></td></tr>"
                 counter++;
                 //console.log(template);
                 return template;
@@ -98,9 +99,14 @@
             <!--we change route directory a bit for line just above to pass number of Cards as a variable in handlebars-->
             <a href="#" id="processBtn" class="inactive">Process {{recordCount}} Texts</a>
         </div>
-        <div class="outputList">
-
-        </div>
+        <table class="outputList">
+            <tr>
+                <th>Index</th>
+                <th>Author</th>
+                <th>Link</th>
+                <th>Hello</th>
+            </tr>
+        </table>
     </div>
 </body>
 

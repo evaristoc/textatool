@@ -24,23 +24,23 @@ var indexProject = function(options) {
     };
 };
 
-const singProject =
+// const singProject =
 
-    {
-        method: 'GET',
-        path: '/edit/{id}',
-        handler: (request, reply) => {
-            let id = request.params.id;
-            //let id = 'World';
-            reply('<h1>HELLO, hapi!!' + id + '</h1>');
-            //reply.view('sing', { //using the handlebars template now
-            //    record: () => {
-            //        return indexArray;
-            //    },
-            //    edit: true,
-            //}); // we are creating this AFTER we set the use of data through the `options` attribute
-        },
-    };
+//     {
+//         method: 'GET',
+//         path: '/edit/{id}',
+//         handler: (request, reply) => {
+//             let id = request.params.id;
+//             //let id = 'World';
+//             reply('<h1>HELLO, hapi!!' + id + '</h1>');
+//             //reply.view('sing', { //using the handlebars template now
+//             //    record: () => {
+//             //        return indexArray;
+//             //    },
+//             //    edit: true,
+//             //}); // we are creating this AFTER we set the use of data through the `options` attribute
+//         },
+//     };
 
 
 
@@ -50,11 +50,13 @@ const singProjectGet = {
     handler: (request, reply) => {
         let id = request.params.id;
         //let record = JSON.parse(require('../../../output/output.json')).filter((d) => { return d.id == id });
-        let records = JSON.parse(JSON.stringify(require('../../../output/output.json'))).filter((d) => {
+        let record = JSON.parse(JSON.stringify(require('../../../output/output.json'))).filter((d) => {
             return JSON.parse(d).id == id;
         }, {});
         //let id = 'World';
-        reply('<h1>HELLO, hapi!!' + id + '</h1><p>' + records + '</p>');
+        reply.view('edit', {
+            record: record,
+        });
         //reply.view('sing', { //using the handlebars template now
         //    record: () => {
         //        return indexArray;

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Text Analysis</title>
+    <!--<link rel="stylesheet" href="../public/css/style.css">-->
+    <!--we change route directory a bit for line just above because it is now set in the server template path-->
+    <link rel="stylesheet" href="/public/css/style.css">
+    <link href="http://cdn.rawgit.com/noelboss/featherlight/1.3.2/release/featherlight.min.css" type="text/css" rel="stylesheet" title="Featherlight Styles" />
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.2/featherlight.min.js"></script>
+<script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js"></script>
+
+<script>
+//https://stackoverflow.com/questions/19247150/is-it-possible-to-access-the-data-that-is-sent-to-handlebars-through-js-inside-t
+//https://stackoverflow.com/questions/18085301/pass-javascript-object-hash-to-handlebars-helper/18546138#18546138
+//https://stackoverflow.com/questions/34039555/display-json-data-using-handlebars-js
+//Handlebars.registerHelper('toJSON', function(obj) {
+//    //return JSON.stringify(obj, null, 3);
+//	var url = Handlebars.escapeExpression(obj.link),
+//    return new Handlebars.SafeString(url);
+//});
+console.log(JSON.parse('{{record}}'))
+</script>
+</head>
+<body>
+</body>
+</html>

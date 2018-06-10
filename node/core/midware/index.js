@@ -91,9 +91,9 @@ function midware(server, options, next) {
                     .emit("buttonState", { //this is verified first
                         state: false,
                     })
-                    //.emit("allData", { //once the above is done, this one is verified
-                    //    dataArray: itemArray,
-                    //})
+                    .emit("allData", { //once the above is done, this one is verified
+                        dataArray: itemArray,
+                    })
             } else {
                 socket.emit("buttonState", {
                     state: true,

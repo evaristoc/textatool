@@ -30,7 +30,8 @@
             function renderTemplate(data) {
                 //console.log(data);
                 //var template = "<tr><td class='serialNo'>" + counter + ". </td><td class='author'>" + data.author + "</td><td class='linkTitle'><a href='#'>Link to the Post</a></td><td><button id=" + data.author + ">SEE MORE</button></td></tr>"
-                var template = "<tr class='entity'><td class='serialNo'>" + counter + ". </td><td class='author'>" + data.author + "</td><td>Link: " + data.link + "</td><td><button id=" + data.author + ">SEE MORE</button></td></tr>"
+                //https://stackoverflow.com/questions/2906582/how-to-create-an-html-button-that-acts-like-a-link
+                var template = "<tr class='entity'><td class='serialNo'>" + counter + ". </td><td class='author'>" + data.author + "</td><td>Link: " + data.link + "</td><td><form method='GET' action='http://localhost:3000/edit/" + data.id + "'><input type='submit' value='FIND MORE'></form></td></tr>"
                 counter++;
                 //console.log(template);
                 return template;

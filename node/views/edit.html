@@ -10,20 +10,54 @@
     <link href="http://cdn.rawgit.com/noelboss/featherlight/1.3.2/release/featherlight.min.css" type="text/css" rel="stylesheet" title="Featherlight Styles" />
     <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/featherlight/1.3.2/featherlight.min.js"></script>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js"></script>
+    <!--<script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.min.js"></script>-->
+    <style>
+        body {
+            color: white;
+        }
+    </style>
+    <script>
+        /////////////////////////////
+        // HANDLEBARS OBJECT ERROR //
+        /////////////////////////////
+        // handlebars doesn't manipulate objects/JSON correctly
+        // the simplest solution is passing the JSON as string and converting into JSON on the page 
+        // however my stringified JSON was passed with "&quot;" instead of double quote passed (!?)
+        //https://stackoverflow.com/questions/25443682/js-how-right-replace-quot-on-quotes
+        console.log(JSON.parse('{{record}}'.replace(/&quot;/g, '"')));
 
-<script>
-//https://stackoverflow.com/questions/19247150/is-it-possible-to-access-the-data-that-is-sent-to-handlebars-through-js-inside-t
-//https://stackoverflow.com/questions/18085301/pass-javascript-object-hash-to-handlebars-helper/18546138#18546138
-//https://stackoverflow.com/questions/34039555/display-json-data-using-handlebars-js
-//Handlebars.registerHelper('toJSON', function(obj) {
-//    //return JSON.stringify(obj, null, 3);
-//	var url = Handlebars.escapeExpression(obj.link),
-//    return new Handlebars.SafeString(url);
-//});
-console.log(JSON.parse('{{record}}'))
-</script>
+        // Other solutions for a better manipulation of JSONs in handlebars use helpers
+        // They didn't work for me, likely because the helper must be registered in the server
+        //-- https://stackoverflow.com/questions/19247150/is-it-possible-to-access-the-data-that-is-sent-to-handlebars-through-js-inside-t
+        //-- https://stackoverflow.com/questions/18085301/pass-javascript-object-hash-to-handlebars-helper/18546138#18546138
+        //-- https://stackoverflow.com/questions/34039555/display-json-data-using-handlebars-js
+
+        $(function() {
+            var record = JSON.parse('{{record}}'.replace(/&quot;/g, '"'));
+            var poststs = record.wPERst;
+
+            function linesTemplate() {
+                for (var i = 0; i < poststs.length; i++) {
+                    var st = [];
+                    //console.log(i, poststs[i]["tokens"]);
+                    (function(st) {
+                        poststs[i]["tokens"].forEach(function(ws, i) {
+                            //console.log(ws["ltoken"]);
+                            st.push(ws["ltoken"]);
+                        });
+                    })(st)
+                    //console.log(st);
+                    $('#sentences').append('<tr><td>' + i + '</td><td><form><input type="checkbox" name="sts" value=' + i + '</form></td><td>' + st.join(' ') + '</td></tr>')
+                };
+            };
+            linesTemplate();
+        })
+    </script>
 </head>
+
 <body>
+    <table id="sentences">
+    </table>
 </body>
+
 </html>

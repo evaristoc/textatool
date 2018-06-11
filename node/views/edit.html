@@ -43,14 +43,74 @@
                     (function(st) {
                         poststs[i]["tokens"].forEach(function(ws, i) {
                             //console.log(ws["ltoken"]);
-                            st.push(ws["ltoken"]);
+                            st.push('<span style="opacity:' + ws["val"] + ';">' + ws["ltoken"] + '</span>');
                         });
                     })(st)
                     //console.log(st);
-                    $('#sentences').append('<tr><td>' + i + '</td><td><form><input type="checkbox" name="sts" value=' + i + '</form></td><td>' + st.join(' ') + '</td></tr>')
+                    $('#sentences').append('<tr><td>' + i + '</td><td><input id="checkbox_type_' + i + '" type="checkbox" name="sts_type" value=' + i + '></td><td><input id="checkbox_highlight_' + i + '" type="checkbox" name="sts_hl" value=' + i + ' checked></td><td class="sentence" id="sentence_' + i + '">' + st.join(' ') + '</td></tr>');
                 };
             };
             linesTemplate();
+            //https://stackoverflow.com/questions/426258/setting-checked-for-a-checkbox-with-jquery
+            //https://www.w3schools.com/jquery/event_change.asp
+
+            $("input[name='sts_hl']").change(function() {
+                //alert("The text has been changed.")
+                var index = $(this).attr('value');
+                var st = [];
+                if (!this.checked) {
+                    //console.log(poststs[$(this).attr('value')])
+                    poststs[index]["tokens"].forEach(function(ws, i) {
+                        //console.log(ws["ltoken"]);
+                        if (!$("#checkbox_type_" + index).is(':checked')) {
+                            st.push(ws["ltoken"]);
+                        } else {
+                            st.push(ws["token"]);
+                        };
+                    });
+
+                } else {
+                    poststs[index]["tokens"].forEach(function(ws, i) {
+                        if (!$("#checkbox_type_" + index).is(':checked')) {
+                            st.push('<span style="opacity:' + ws["val"] + ';">' + ws["ltoken"] + '</span>');
+                        } else {
+                            st.push('<span style="opacity:' + ws["val"] + ';">' + ws["token"] + '</span>');
+                        };
+                    });
+                }
+                $('#sentence_' + index).html(st.join(' '));
+            });
+
+
+            //https://j11y.io/javascript/replacing-text-in-the-dom-its-not-that-simple/
+            $("input[name='sts_type']").change(function() {
+                //alert("The text has been changed.")
+                var index = $(this).attr('value');
+                var st = [];
+                if (this.checked) {
+                    //console.log($("#checkbox_highlight_" + index).is(':checked'));
+                    //console.log(poststs[$(this).attr('value')])
+                    poststs[index]["tokens"].forEach(function(ws, i) {
+                        //console.log(ws["ltoken"]);
+                        if ($("#checkbox_highlight_" + index).is(':checked')) {
+                            st.push('<span style="opacity:' + ws["val"] + ';">' + ws["token"] + '</span>');
+                        } else {
+                            st.push(ws["token"]);
+                        };
+                    });
+
+                } else {
+                    poststs[index]["tokens"].forEach(function(ws, i) {
+                        if ($("#checkbox_highlight_" + index).is(':checked')) {
+                            st.push('<span style="opacity:' + ws["val"] + ';">' + ws["ltoken"] + '</span>');
+                        } else {
+                            st.push(ws["ltoken"]);
+                        };
+                    });
+                }
+                $('#sentence_' + index).html(st.join(' '));
+            });
+
         })
     </script>
 </head>

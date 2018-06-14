@@ -38,7 +38,7 @@ class MyListener(object):
 			print(len(otp))
 			al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(otp))
 			#fn = processingData.jsonbuilding(al, nor, fd)
-			fn = processingData.jsonbuildingnew(al, nor, processingData.enlargedopacity(nor,fd))
+			fn = processingData.jsonbuildingnew(al, nor, processingData.wordimportance_var2(nor,fd))
 			for rcd in fn:
 				print(rcd['author'])
 				conn.send(body=json.dumps(rcd), destination='/queue/withPython')

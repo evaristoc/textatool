@@ -262,31 +262,46 @@ def metrics_test(all_posedsts, norm_posedsts, all_fd):
     return opacity, sizing, enlargedopacity
 
 
-def enlargedopacity(norm_posedsts, all_fd):
+def wordimportance_var1(norm_posedsts, all_fd):
     '''
-    description: "enlargedopacity" is just a metric to measure word importance; the importance of a word in this case is based
-    on the combined effect of two metrics:
+    description:
+    
+    This metric was originally called "enlargedopacity"; renamed as wordimportance_var1.
+    
+    "enlargedopacity" is just a variation of the TF-IDF metric to measure word importance; the naming is just arbitrary and related to its use in this specific project.
+    
+    The importance of a word in this case is based on the combined effect of two metrics:
     --- opacity: 1 - total count of word against total count of the most frequent word (1 - log(f_w)/log(f_maxw)):
         this range between [0,1); the metric will penalize those words that are too frequent in the corpus, giving it a small value (close to 0)
     --- sizing: 1 - (max count of a word in a text) / (total count of the word in all texts):
         this range between [0,1); this metric is mostly a dispersion metric: the smaller the value, the larger the likelihood
-        that the word concentrates in only one text; it also penalises a very rare words
+        that the word concentrates in only one text; it also penalises very rare words
+
+    opacity is about a complement of a TF variation (a standard TF is corpus' term frequency).
     
-    enlargedopacity is the product of the frequency of the word against the most frequent word by its dispersion in the corpus
-    
+    sizing is about a complement of a IDF variation (a standard IDF is log( (Total Documents) / (Documents containing the term) )).
+ 
     While opacity will favour the less frequent words, sizing will adjust opacity so those that are too concentrated in very few texts (too rare) get penalized.
+   
     Using sizing as dispersion metric, words that are more common between different text receive better ranking.
-    
+
+    "enlargedopacity" is the product of the frequency of the word against the most frequent word by its dispersion in the corpus, just like TF-IDF.
+    Its calculation doesn't deviate much from other variations of the standard metric (https://en.wikipedia.org/wiki/Tf%E2%80%93idf).
+      
     The idea is to highlight those words that are more shared in the corpus without being too frequent ones. Those are more like (shared) topic words.
-    
-    Be aware that the metric is not normalized by text's length: the effect of the frequent appearance of a word because the text is long is not considered
-    This could affect mostly the dispersion metric.
+
+    However:
+    --- Be aware that the metric is not normalized by text's length: the effect of the frequent appearance of a word because the text is long is not considered
+        This could affect mostly the dispersion metric.
+    --- The metric favours words that are shared; for topic modelling it will excludes words that define topics specific to few texts
+    --- The metrics assign value of (close to) 0 to penalised words: that makes those words to dissappear from the radar; it is like a hard L1 measure 
+    --- In fact, it assigns value of 0 to less and very frequent words, suggesting they are the same when they are not
     
     input:
         1) tokenized list of texts
         2) freqDist of lemmatized words
     
-    output: enlargedopacity 
+    output: wordimportance_var1 
     '''
 
     maxdiv = math.log(sorted(all_fd.items(), key=lambda x: x[1], reverse=True)[0][1])
@@ -300,10 +315,49 @@ def enlargedopacity(norm_posedsts, all_fd):
        
     sizing = dict([(k, 1 - max(vector)/sum(vector)) for k, vector in sizing_matrix.items()])
     
-    enlargedopacity = dict([(k, valsizing*opacity[k]) for k, valsizing in sizing.items()])
+    wordimportance_var1 = dict([(k, valsizing*opacity[k]) for k, valsizing in sizing.items()])
 
-    return enlargedopacity
+    return wordimportance
 
+
+def wordimportance_var2(norm_posedsts, all_fd):
+    '''
+    description:
+    
+    This metric tries to solve some of the issues that appeared in `wordimportance_var1` metric, in particular the values of zero.
+    
+    This is done by setting lower bounds when required.
+    
+    --- In the case of opacity, a non-zero lower bound is set by changing the equation to the following:
+        ```
+        if 1-math.log(v)/maxdiv == 0: 1-math.log(maxdiv-1)/maxdiv # 1-math.log(v)/maxdiv == 0 if v == maxdiv
+        ```
+    --- In the case of sizing, a redefinition of the metric force a non-zero lower bound as well as rebumpimg rare terms in documents:
+        ```
+        (sum(vector)-max(vector))/sum(vector)
+        ```
+    
+    input:
+        1) tokenized list of texts
+        2) freqDist of lemmatized words
+    
+    output: wordimportance 
+    '''
+
+    maxdiv = math.log(sorted(all_fd.items(), key=lambda x: x[1], reverse=True)[0][1])
+    opacity = dict([(k, 1-math.log(v)/maxdiv) if 1-math.log(v)/maxdiv != 0 else (k,1-math.log(maxdiv-1)/maxdiv) for k,v in all_fd.items()])
+    sizing_matrix = dict([(k, [0]*len(norm_posedsts)) for k in list(all_fd.keys())])
+    data_out = []
+    l = 0
+    for i,norm_t in enumerate(norm_posedsts):
+        for k, norm_w in enumerate(norm_t):
+            sizing_matrix[norm_w][i] = sizing_matrix[norm_w][i] + 1
+       
+    sizing = dict([(k, (sum(vector)-max(vector))/sum(vector)) for k, vector in sizing_matrix.items()])
+    
+    wordimportance = dict([(k, valsizing*opacity[k]) for k, valsizing in sizing.items()])
+
+    return wordimportance
 
 
 def jsonbuildingnew(all_posedsts, norm_posedsts, metrics):

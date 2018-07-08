@@ -50,6 +50,39 @@
                     $('#sentences').append('<tr><td>' + i + '</td><td><input id="checkbox_type_' + i + '" type="checkbox" name="sts_type" value=' + i + '></td><td><input id="checkbox_highlight_' + i + '" type="checkbox" name="sts_hl" value=' + i + ' checked></td><td class="sentence" id="sentence_' + i + '">' + st.join(' ') + '</td></tr>');
                 };
             };
+
+            function bow() {
+                var w = {};
+                for (var i = 0; i < poststs.length; i++) {
+                    for (var k = 0; k < poststs[i]['tokens'].length; k++) {
+                        console.log(poststs[i]['tokens'][k]['ltoken']);
+                        if (w.hasOwnProperty(poststs[i]['tokens'][k]['ltoken'])) {
+                            w[poststs[i]['tokens'][k]['ltoken']]['count'] = w[poststs[i]['tokens'][k]['ltoken']]['count'] + 1;
+                        } else {
+                            w[poststs[i]['tokens'][k]['ltoken']] = {};
+                            w[poststs[i]['tokens'][k]['ltoken']]['count'] = 1;
+                            w[poststs[i]['tokens'][k]['ltoken']]['opacity'] = poststs[i]['tokens'][k]['val'];
+                        };
+
+                    };
+                };
+
+                console.log(w);
+                var sortable = [];
+                var wordkeys = Object.keys(w);
+                console.log(wordkeys);
+                for (var l = 0; l < wordkeys.length; l++) {
+                    sortable.push([wordkeys[l], w[wordkeys[l]]['opacity'], w[wordkeys[l]]['count'], (Number(w[wordkeys[l]]['opacity']) + 1) / w[wordkeys[l]]['count']]);
+                };
+                console.log(sortable.sort(function(a, b) {
+                    return a[1] - b[1]; //the "opacity" value is a good one for mood analysis...
+                    //return b[3] - a[3];
+                }));
+            };
+
+            bow();
+
+
             linesTemplate();
             //https://stackoverflow.com/questions/426258/setting-checked-for-a-checkbox-with-jquery
             //https://www.w3schools.com/jquery/event_change.asp

@@ -16,6 +16,7 @@ import sklearn
 import re
 import string
 import math
+import scipy
 import numpy
 
 ##################
@@ -93,8 +94,9 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
         likedict = collections.defaultdict(float)
         textbow = collections.Counter(st)
         for w in st:
-            #likedict[w] = math.pow(float(wordimportance[w]),textbow[w]/normalizer) #a sort of idf-normalization based on number of words in the text: the more the words in a text, the more important
-            likedict[w] = float(wordimportance[w])*textbow[w] #good but ignore those words with worimportance too low or 0 but that are frequent in text
+            #likedict[w] = math.pow(0.1+float(wordimportance[w]),textbow[w]/normalizer) #a sort of idf-normalization based on number of words in the text: the more the words in a text, the more important
+            #likedict[w] = float(wordimportance[w])*textbow[w] #good but ignore those words with worimportance too low or 0 but that are frequent in text
+            likedict[w] = 1.0+2.0**float(wordimportance[w]) #because it is not normilized this indicator would simply say that if it has the word at least once is already on topic
         return likedict
             
             
@@ -118,7 +120,11 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     words_df = words_df.fillna(0)
     print("Number of unique words: %s" % len(words_df))
     print(words_df.sort(columns=words_df.columns[0], ascending=False).head(10))
+    
+    return words_df
 
+def similarityanalysis(words_df):
+    
     U, sigma, V = numpy.linalg.svd(words_df)
     v_df = pandas.DataFrame(V, columns=words_df.columns)
     v_df.apply(lambda x: numpy.round(x, decimals=2))
@@ -130,7 +136,8 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
         """Return the norm of (col1 - col2), where the differences in 
         each dimension are wighted by the values in sigma."""
         return numpy.linalg.norm(numpy.array(col1 - col2) * sigma)
-
+        #return scipy.spatial.distance.cosine(col1,col2) #always saying they are different; also http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html
+        
     # plt.imshow(V, interpolation='none')
     # ax = plt.gca()
     # #plt.xticks(list(range(len(v_df.columns.values))))
@@ -163,6 +170,8 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     #https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/
     #NO: https://www.programcreek.com/python/example/97741/scipy.cluster.hierarchy.dendrogram
     #https://stackoverflow.com/questions/11917779/how-to-plot-and-annotate-hierarchical-clustering-dendrograms-in-scipy-matplotlib
+    #https://datawarrior.wordpress.com/tag/lda2vec/
+    #https://stackoverflow.com/questions/47827130/suggestion-on-lda
     import scipy.cluster.hierarchy as sch
     import pylab
     # Compute and plot dendrogram.
@@ -189,8 +198,8 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     
     # Display and save figure.
     fig.show()
-        
-    #redo_corpus_by_sts.append(st)
+    #     
+    # #redo_corpus_by_sts.append(st)
     
     
 

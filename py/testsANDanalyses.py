@@ -19,30 +19,7 @@ import math
 import scipy
 import numpy
 
-##################
-## Previous data Preparation
-#################
 
-# with open(os.getcwd()+'/1_archive/data_foundjob.pkl', 'rb') as f_in:
-#     data_saved = pickle.load(f_in)
-# 
-# for u in data_saved:
-#     if data_saved[u]['forum']['foundjob_msg']['text'] != '':
-#         print(data_saved[u]['forum']['foundjob_msg']['text'])
-#         break
-# 
-# 
-# for u in data_saved:
-#     if data_saved[u]['forum']['foundjob_msg']['text'] != '':
-#         soup_forum = BeautifulSoup(data_saved[u]['forum']['foundjob_msg']['text'])
-#         break
-with open('../data/jobproject_forum.json','r') as message:
-    otp = json.load(message)
-print(len(otp))
-data = [{ "user": k, "data": otp[k] }  for k in otp]
-print(len(data))
-al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(data))
-wordimportance = processingData.wordimportance_var2(nor,fd)
 
 def cleaningtext(norm_t, redo_corpus_by_sts, lensts, STOPWORDS):
     st = []
@@ -103,6 +80,8 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     STOPWORDS = nltk.corpus.stopwords.words('english')
     #redo_corpus_by_sts = []
     words_df = pandas.DataFrame()
+    textreference = {}
+    count = -1
     for textindex, norm_t in enumerate(norm_posedsts):
         print('norm_t', len(norm_t))
         redo_corpus_by_sts = []
@@ -111,33 +90,50 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
         print('corpus_sts', len(redo_corpus_by_sts))
         for stindex, treated_st in enumerate(redo_corpus_by_sts):
             print('treated_st', len(treated_st))
+            count += 1
             if len(treated_st) > 3:
                 likedict = metriccalc(treated_st, lensts[stindex], wordimportance)
                 st_df = pandas.DataFrame.from_dict(likedict, orient='index')
-                st_df.columns = [str(textindex)+'_'+str(stindex)]
+                textindexing = str(textindex)+'_'+str(stindex)
+                st_df.columns = [textindexing]
+                textreference[textindexing] = {}
+                textreference[textindexing]['treated_st'] = treated_st
+                #st_df.columns = [str(count)]
                 words_df = words_df.join(st_df, how='outer', )
     
     words_df = words_df.fillna(0)
     print("Number of unique words: %s" % len(words_df))
     print(words_df.sort(columns=words_df.columns[0], ascending=False).head(10))
     
-    return words_df
+    return words_df, textreference
+
+
+
+def dist(col1, col2, sigma):
+    """Return the norm of (col1 - col2), where the differences in 
+    each dimension are wighted by the values in sigma."""
+    return numpy.linalg.norm(numpy.array(col1 - col2) * sigma)
+    #return scipy.spatial.distance.cosine(col1,col2) #always saying they are different; also http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html
+
 
 def similarityanalysis(words_df):
     
     U, sigma, V = numpy.linalg.svd(words_df)
     v_df = pandas.DataFrame(V, columns=words_df.columns)
     v_df.apply(lambda x: numpy.round(x, decimals=2))
+     
+    dist_df = pandas.DataFrame(index=v_df.columns, columns=v_df.columns)
+    for cname in v_df.columns:
+        dist_df[cname] = v_df.apply(lambda x: dist(v_df[cname].values, x.values, sigma))
+    
+    return dist_df, U, sigma, V, v_df
+ 
+   
+def dataviz(dist_df):
 
     #%matplotlib inline
     import matplotlib.pyplot as plt
 
-    def dist(col1, col2, sigma=sigma):
-        """Return the norm of (col1 - col2), where the differences in 
-        each dimension are wighted by the values in sigma."""
-        return numpy.linalg.norm(numpy.array(col1 - col2) * sigma)
-        #return scipy.spatial.distance.cosine(col1,col2) #always saying they are different; also http://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html
-        
     # plt.imshow(V, interpolation='none')
     # ax = plt.gca()
     # #plt.xticks(list(range(len(v_df.columns.values))))
@@ -146,10 +142,7 @@ def similarityanalysis(words_df):
     # #ax.set_xticklabels(v_df.columns.values, rotation=90)
     # plt.colorbar()
     # plt.show()
-
-    dist_df = pandas.DataFrame(index=v_df.columns, columns=v_df.columns)
-    for cname in v_df.columns:
-        dist_df[cname] = v_df.apply(lambda x: dist(v_df[cname].values, x.values))
+    
     
     # plt.imshow(dist_df.values, interpolation='none')
     # ax = plt.gca()
@@ -209,14 +202,52 @@ def showgensimmodelresults(model, NUM_TOPICS=10):
         print("Topic #%s:" % idx, model.print_topic(idx, 20))
         print("=" * 20)
 
-#lda_model, lsi_model = gensim_models(nor, fd, wordimportance)
-#showgensimmodelresults(lda_model)
-#showgensimmodelresults(lsi_model)
 
-raw_lda_frankjupyter(nor, wordimportance)
+
+if __name__ == '__main__':
+
+    ##################
+    ## Previous data Preparation
+    #################
     
-#fn = processingData.jsonbuilding(al, nor, fd)
-
-#print(sorted(all_fd.items(), key=lambda x: x[1], reverse=True)[round(len(all_fd)/50):round(len(all_fd)/50)+10+1])
-
-#opacity, sizing, enlargedopacity = processingData.metrics_test(al, nor, fd)
+    # with open(os.getcwd()+'/1_archive/data_foundjob.pkl', 'rb') as f_in:
+    #     data_saved = pickle.load(f_in)
+    # 
+    # for u in data_saved:
+    #     if data_saved[u]['forum']['foundjob_msg']['text'] != '':
+    #         print(data_saved[u]['forum']['foundjob_msg']['text'])
+    #         break
+    # 
+    # 
+    # for u in data_saved:
+    #     if data_saved[u]['forum']['foundjob_msg']['text'] != '':
+    #         soup_forum = BeautifulSoup(data_saved[u]['forum']['foundjob_msg']['text'])
+    #         break
+    with open('../data/jobproject_forum.json','r') as message:
+        otp = json.load(message)
+    print(len(otp))
+    data = [{ "user": k, "data": otp[k] }  for k in otp]
+    print(len(data))
+    al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(data))
+    wordimportance = processingData.wordimportance_var2(nor,fd)
+    
+    #lda_model, lsi_model = gensim_models(nor, fd, wordimportance)
+    words_df = raw_lda_frankjupyter(nor, wordimportance)
+   
+    dist_df, U, sigma, V, v_df = similarityanalysis(words_df)
+    #showgensimmodelresults(lda_model)
+    #showgensimmodelresults(lsi_model) 
+        
+    for paper in dist_df.columns:
+        sim_papers_df = dist_df.sort(columns=paper)[paper]
+        sim_papers = sim_papers_df.drop([paper]).index
+        print('Papers most similar to ' + paper + ':')
+        print(', '.join(sim_papers[:10]))
+        print( '\n')
+       
+    #fn = processingData.jsonbuilding(al, nor, fd)
+    
+    #print(sorted(all_fd.items(), key=lambda x: x[1], reverse=True)[round(len(all_fd)/50):round(len(all_fd)/50)+10+1])
+    
+    #opacity, sizing, enlargedopacity = processingData.metrics_test(al, nor, fd)
+    

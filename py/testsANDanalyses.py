@@ -41,7 +41,7 @@ def cleaningtext(norm_t, redo_corpus_by_sts, lensts, STOPWORDS):
 
 
 def gensim_models(norm_posedsts, all_fd, wordimportance):
-    NUM_TOPICS = 10
+    NUM_TOPICS = 15
     STOPWORDS = nltk.corpus.stopwords.words('english') 
     redo_corpus_by_sts = []
     for norm_t in norm_posedsts:
@@ -50,7 +50,7 @@ def gensim_models(norm_posedsts, all_fd, wordimportance):
     dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
     corpus = [dictionary.doc2bow(text) for text in redo_corpus_by_sts]
     
-    print(len(redo_corpus_by_sts))
+    #print(len(redo_corpus_by_sts))
     
     lda_model = gensim.models.LdaModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
     lsi_model = gensim.models.LsiModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
@@ -67,6 +67,30 @@ def gensim_models2(norm_posedsts, all_fd, wordimportance):
     lsi_model = gensim.models.LsiModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
 
     return lda_model, lsi_model
+
+
+def gensim_models3(norm_posedsts, all_fd, wordimportance):
+    NUM_TOPICS = 20
+    STOPWORDS = nltk.corpus.stopwords.words('english') 
+    redo_corpus_by_sts = []
+    for norm_t in norm_posedsts:
+        redo_corpus_by_sts, _ = cleaningtext(norm_t, redo_corpus_by_sts, [], STOPWORDS)
+
+    dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
+    corpus = []
+
+    for sts in redo_corpus_by_sts:
+        st = []
+        for w in sts:
+            st.append((dictionary.token2id[w], 1.0+2.0**float(wordimportance[w])))
+        corpus.append(st)
+    
+    lda_model = gensim.models.LdaModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
+    lsi_model = gensim.models.LsiModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
+
+   
+    return lda_model, lsi_model
+
 
 def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     '''
@@ -118,8 +142,15 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     return words_df, textreference
 
 
-def topicmodelling_sklearnexample(norm_posedsts, wordimportance):
+def topicmodelling_combined(norm_posedsts, wordimportance):
     
+    corpus = []
+    dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
+    for sts in redo_corpus_by_sts:
+        st = []
+        for w in sts:
+            st.append(dictionary.token2id[w], 1.0+2.0**float(wordimportance[w]))
+        
     
     
     return words_df, textreference
@@ -246,10 +277,12 @@ if __name__ == '__main__':
     data = [{ "user": k, "data": otp[k] }  for k in otp]
     print(len(data))
     al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(data))
-    #wordimportance = processingData.wordimportance_var2(nor,fd)
-    wordimportance = processingData.wordimportance_var3(nor,fd, cleaningtext, gensim)
+    wordimportance = processingData.wordimportance_var2(nor,fd)
+    #ordimportance = processingData.wordimportance_var3(nor,fd, cleaningtext, gensim)
     
-    lda_model, lsi_model = gensim_models2(nor, fd, wordimportance)
+    #lda_model, lsi_model = gensim_models(nor, fd, wordimportance)
+    #lda_model, lsi_model = gensim_models2(nor, fd, wordimportance)
+    lda_model, lsi_model = gensim_models3(nor, fd, wordimportance)
     
     
     

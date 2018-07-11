@@ -360,6 +360,50 @@ def wordimportance_var2(norm_posedsts, all_fd):
     return wordimportance
 
 
+
+# def wordimportance_var3(norm_posedsts, all_fd, cleaningtextfunc):
+# 	import sklearn
+# 	STOPWORDS = nltk.corpus.stopwords.words('english') 
+# 	redo_corpus_by_sts = []
+# 	for norm_t in norm_posedsts:
+# 		redo_corpus_by_sts, _ = cleaningtextfunc(norm_t, redo_corpus_by_sts, [], STOPWORDS)
+# 	
+# 	for index, treated_t in enumerate(redo_corpus_by_sts):
+# 		redo_corpus_by_sts[index] = ' '.join(treated_t)
+# 	
+# 	tfidf_vectorizer = sklearn.feature_extraction.text.TfidfVectorizer(min_df=4, sublinear_tf = True, norm='l1')
+# 	
+# 	wordimportance = tfidf_vectorizer.fit_transform(redo_corpus_by_sts)
+# 
+# 	return wordimportance
+
+def wordimportance_var3(norm_posedsts, all_fd, cleaningtextfunc, gensim):
+	#https://radimrehurek.com/gensim/models/tfidfmodel.html
+	#https://radimrehurek.com/gensim/tut2.html
+	
+	STOPWORDS = nltk.corpus.stopwords.words('english') 
+	redo_corpus_by_sts = []
+	for norm_t in norm_posedsts:
+		redo_corpus_by_sts, _ = cleaningtextfunc(norm_t, redo_corpus_by_sts, [], STOPWORDS)
+	
+	#print(len(redo_corpus_by_sts))
+	#print(redo_corpus_by_sts[0])
+	
+	corpus = []
+	for treated_t in redo_corpus_by_sts:
+		corpus.append(' '.join(treated_t))
+	
+	dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
+	modelcorpus = [dictionary.doc2bow(text) for text in redo_corpus_by_sts]
+	
+	tfidf = gensim.models.TfidfModel(modelcorpus)
+	
+	#print(corpus[0])
+	#print(modelcorpus[0])
+	#print(tfidf[modelcorpus[0]])
+	return tfidf[modelcorpus], dictionary
+
+
 def jsonbuildingnew(all_posedsts, norm_posedsts, metrics):
     '''
     description: creating a lemmatized text with highlighting lemmatized words that are LESS common to corpora; formula to highlight is 1 - log(frqDist_wd)/log(frqDist_mostcommonwd) --- the most common word as reference

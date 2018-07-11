@@ -58,6 +58,16 @@ def gensim_models(norm_posedsts, all_fd, wordimportance):
    
     return lda_model, lsi_model
 
+def gensim_models2(norm_posedsts, all_fd, wordimportance):
+    NUM_TOPICS = 15
+    corpus = wordimportance[0]
+    dictionary = wordimportance[1]
+    
+    lda_model = gensim.models.LdaModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
+    lsi_model = gensim.models.LsiModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
+
+    return lda_model, lsi_model
+
 def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     '''
     description: modified model based on https://www.frankcleary.com/svd/ for a more raw construction of a lda
@@ -107,6 +117,12 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     
     return words_df, textreference
 
+
+def topicmodelling_sklearnexample(norm_posedsts, wordimportance):
+    
+    
+    
+    return words_df, textreference
 
 
 def dist(col1, col2, sigma):
@@ -158,6 +174,7 @@ def dataviz(dist_df):
     #https://stackoverflow.com/questions/2455761/reordering-matrix-elements-to-reflect-column-and-row-clustering-in-naiive-python
     #https://stackoverflow.com/questions/7664826/how-to-get-flat-clustering-corresponding-to-color-clusters-in-the-dendrogram-cre/7668678
     #https://gmarti.gitlab.io/ml/2017/09/07/how-to-sort-distance-matrix.html
+    #https://www.quora.com/How-do-you-combine-LDA-and-tf-idf vs https://stackoverflow.com/questions/44781047/necessary-to-apply-tf-idf-to-new-documents-in-gensim-lda-model
     #https://www.shanelynn.ie/select-pandas-dataframe-rows-and-columns-using-iloc-loc-and-ix/
     #https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.hierarchy.dendrogram.html
     #https://joernhees.de/blog/2015/08/26/scipy-hierarchical-clustering-and-dendrogram-tutorial/
@@ -229,21 +246,25 @@ if __name__ == '__main__':
     data = [{ "user": k, "data": otp[k] }  for k in otp]
     print(len(data))
     al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(data))
-    wordimportance = processingData.wordimportance_var2(nor,fd)
+    #wordimportance = processingData.wordimportance_var2(nor,fd)
+    wordimportance = processingData.wordimportance_var3(nor,fd, cleaningtext, gensim)
     
-    #lda_model, lsi_model = gensim_models(nor, fd, wordimportance)
-    words_df = raw_lda_frankjupyter(nor, wordimportance)
-   
-    dist_df, U, sigma, V, v_df = similarityanalysis(words_df)
-    #showgensimmodelresults(lda_model)
-    #showgensimmodelresults(lsi_model) 
-        
-    for paper in dist_df.columns:
-        sim_papers_df = dist_df.sort(columns=paper)[paper]
-        sim_papers = sim_papers_df.drop([paper]).index
-        print('Papers most similar to ' + paper + ':')
-        print(', '.join(sim_papers[:10]))
-        print( '\n')
+    lda_model, lsi_model = gensim_models2(nor, fd, wordimportance)
+    
+    
+    
+    # words_df = raw_lda_frankjupyter(nor, wordimportance)
+    # 
+    # dist_df, U, sigma, V, v_df = similarityanalysis(words_df)
+    # #showgensimmodelresults(lda_model)
+    # #showgensimmodelresults(lsi_model) 
+    #     
+    # for paper in dist_df.columns:
+    #     sim_papers_df = dist_df.sort(columns=paper)[paper]
+    #     sim_papers = sim_papers_df.drop([paper]).index
+    #     print('Papers most similar to ' + paper + ':')
+    #     print(', '.join(sim_papers[:10]))
+    #     print( '\n')
        
     #fn = processingData.jsonbuilding(al, nor, fd)
     

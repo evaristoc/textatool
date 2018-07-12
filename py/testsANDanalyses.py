@@ -271,11 +271,8 @@ if __name__ == '__main__':
     print(len(data))
     al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(data))
     wordimportance = processingData.wordimportance_var2(nor,fd)
-    #wordimportance = processingData.wordimportance_var3(nor,fd, cleaningtext, gensim)
-    
-    #lda_model, lsi_model = gensim_models(nor, fd, wordimportance)
-    #lda_model, lsi_model = gensim_models2(nor, fd, wordimportance)
-    lda_model, lsi_model = gensim_models3(nor, fd, wordimportance)
+  
+    lda_model, lsi_model = gensim_models(nor, fd, wordimportance)
     
     
     

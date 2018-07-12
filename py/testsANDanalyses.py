@@ -21,69 +21,66 @@ import numpy
 
 
 
-def cleaningtext(norm_t, redo_corpus_by_sts, lensts, STOPWORDS):
-    st = []
-    countwds = 0
-    for norm_w in norm_t:
-        if norm_w != '.':
-            countwds += 1
-            if re.match(r'\w+', norm_w) and norm_w not in STOPWORDS:
-                st.append(norm_w)
-        else:
-            redo_corpus_by_sts.append(st)
-            lensts.append(countwds)
+# def cleaningtext(norm_t, redo_corpus_by_sts, lensts, STOPWORDS):
+#     st = []
+#     countwds = len(norm_t)
+#     for norm_w in norm_t:
+#         if norm_w != '.':
+#             if re.match(r'\w+', norm_w) and norm_w not in STOPWORDS:
+#                 st.append(norm_w)
+#         else:
+#             redo_corpus_by_sts.append(st)
+#             lensts.append(countwds)
+#             st = []
+#     if norm_w != '.':
+#         redo_corpus_by_sts.append(st)
+#         lensts.append(countwds)
+#     return redo_corpus_by_sts, lensts
+
+def cleaningtext(st, STOPWORDS = STOPWORDS):
+    treated_st = []
+    countwds = len(st)
+    for w in st:
+        if re.match(r'\w+', w) and w not in STOPWORDS:
+            treated_st.append(w)
+    return treated_st, countwds
+            
+def gensim_models(norm_posedsts, all_fd = {}, wordimportance = {}):
+    NUM_TOPICS = 15
+    STOPWORDS = nltk.corpus.stopwords.words('english') 
+    redo_corpus_by_sts = []
+    for norm_t in norm_posedsts:
+        norm_sts = norm_t.split('.')
+        for norm_st in norm_sts:
+            redo_corpus_by_sts.append(cleaningtext(norm_st)[0])
+    
+    def basedonBOW(redo_corpus_by_sts):
+        dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
+        corpus = [dictionary.doc2bow(text) for text in redo_corpus_by_sts]
+    return corpus, dictionary
+    
+    def basedonTFIDF(corpus):
+        return gensim.models.TfidfModel(corpus)
+    
+    def basedonOTHER(redo_corpus_by_sts, dictionary, wordimportance):
+        def metriccalc1(w):
+            return 1.0+2.0**float(wordimportance[w])
+        
+        corpus = []
+        for sts in redo_corpus_by_sts:
             st = []
-            countwds = 0
-    if norm_w != '.':
-        redo_corpus_by_sts.append(st)
-        lensts.append(countwds)
-    return redo_corpus_by_sts, lensts
-
-
-def gensim_models(norm_posedsts, all_fd, wordimportance):
-    NUM_TOPICS = 15
-    STOPWORDS = nltk.corpus.stopwords.words('english') 
-    redo_corpus_by_sts = []
-    for norm_t in norm_posedsts:
-        redo_corpus_by_sts, _ = cleaningtext(norm_t, redo_corpus_by_sts, [], STOPWORDS)
-
-    dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
-    corpus = [dictionary.doc2bow(text) for text in redo_corpus_by_sts]
+            for w in sts:
+                st.append((dictionary.token2id[w], metriccalc1(w)))
+            corpus.append(st)
+        return corpus
+        
+    corpus, dictionary = basedonBOW(redo_corpus_by_sts)
+    if wordimportance == {'tfidf':True}:
+        tfidf = basedonTFIDF(corpus)
+        corpus = tfidf[corpus]
+    if wordimportance != {} and wordimportance != {'tfidf':True}:
+        corpus = basedonOTHER(redo_corpus_by_sts, dictionary, wordimportance)
     
-    #print(len(redo_corpus_by_sts))
-    
-    lda_model = gensim.models.LdaModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
-    lsi_model = gensim.models.LsiModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
-
-   
-    return lda_model, lsi_model
-
-def gensim_models2(norm_posedsts, all_fd, wordimportance):
-    NUM_TOPICS = 15
-    corpus = wordimportance[0]
-    dictionary = wordimportance[1]
-    
-    lda_model = gensim.models.LdaModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
-    lsi_model = gensim.models.LsiModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
-
-    return lda_model, lsi_model
-
-
-def gensim_models3(norm_posedsts, all_fd, wordimportance):
-    NUM_TOPICS = 20
-    STOPWORDS = nltk.corpus.stopwords.words('english') 
-    redo_corpus_by_sts = []
-    for norm_t in norm_posedsts:
-        redo_corpus_by_sts, _ = cleaningtext(norm_t, redo_corpus_by_sts, [], STOPWORDS)
-
-    dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
-    corpus = []
-
-    for sts in redo_corpus_by_sts:
-        st = []
-        for w in sts:
-            st.append((dictionary.token2id[w], 1.0+2.0**float(wordimportance[w])))
-        corpus.append(st)
     
     lda_model = gensim.models.LdaModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
     lsi_model = gensim.models.LsiModel(corpus=corpus, num_topics=NUM_TOPICS, id2word=dictionary)
@@ -115,16 +112,14 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     #redo_corpus_by_sts = []
     words_df = pandas.DataFrame()
     textreference = {}
-    count = -1
     for textindex, norm_t in enumerate(norm_posedsts):
         print('norm_t', len(norm_t))
         redo_corpus_by_sts = []
         lensts = []
-        redo_corpus_by_sts, lensts = cleaningtext(norm_t, redo_corpus_by_sts, lensts, STOPWORDS)
-        print('corpus_sts', len(redo_corpus_by_sts))
-        for stindex, treated_st in enumerate(redo_corpus_by_sts):
-            print('treated_st', len(treated_st))
-            count += 1
+        norm_sts = norm_t.split('.')
+        for stindex, norm_st in enumerate(norm_sts):
+            treated_st, lensts = cleaningtext(norm_st)        
+            print('treated_st', lensts)
             if len(treated_st) > 3:
                 likedict = metriccalc(treated_st, lensts[stindex], wordimportance)
                 st_df = pandas.DataFrame.from_dict(likedict, orient='index')
@@ -138,20 +133,6 @@ def raw_lda_frankjupyter(norm_posedsts, wordimportance):
     words_df = words_df.fillna(0)
     print("Number of unique words: %s" % len(words_df))
     print(words_df.sort(columns=words_df.columns[0], ascending=False).head(10))
-    
-    return words_df, textreference
-
-
-def topicmodelling_combined(norm_posedsts, wordimportance):
-    
-    corpus = []
-    dictionary = gensim.corpora.Dictionary(redo_corpus_by_sts)
-    for sts in redo_corpus_by_sts:
-        st = []
-        for w in sts:
-            st.append(dictionary.token2id[w], 1.0+2.0**float(wordimportance[w]))
-        
-    
     
     return words_df, textreference
 
@@ -202,6 +183,7 @@ def dataviz(dist_df):
     # plt.colorbar()
     # plt.show()
 
+    #https://nlpforhackers.io/topic-modeling/
     #https://stackoverflow.com/questions/2455761/reordering-matrix-elements-to-reflect-column-and-row-clustering-in-naiive-python
     #https://stackoverflow.com/questions/7664826/how-to-get-flat-clustering-corresponding-to-color-clusters-in-the-dendrogram-cre/7668678
     #https://gmarti.gitlab.io/ml/2017/09/07/how-to-sort-distance-matrix.html
@@ -213,6 +195,17 @@ def dataviz(dist_df):
     #https://stackoverflow.com/questions/11917779/how-to-plot-and-annotate-hierarchical-clustering-dendrograms-in-scipy-matplotlib
     #https://datawarrior.wordpress.com/tag/lda2vec/
     #https://stackoverflow.com/questions/47827130/suggestion-on-lda
+    
+    #heuristic text main idea extraction
+    #http://bdewilde.github.io/blog/2014/09/23/intro-to-automatic-keyphrase-extraction/
+    #https://pdfs.semanticscholar.org/dcd8/b259d530f16b66b9077903478306548df96a.pdf
+    #https://books.google.nl/books?id=-e0ADQAAQBAJ&pg=PA104&lpg=PA104&dq=heuristic+text+main+idea+extraction&source=bl&ots=UefOlfKYHs&sig=Six23cBGcN4BU0AaFXSINYBsSWo&hl=nl&sa=X&ved=0ahUKEwj7i_aDo5fcAhVQDewKHemZBNAQ6AEIbzAJ#v=onepage&q=heuristic%20text%20main%20idea%20extraction&f=false
+    #https://books.google.nl/books?id=-e0ADQAAQBAJ&printsec=frontcover&hl=nl#v=onepage&q&f=false
+    #https://books.google.nl/books?id=lbQU3mP-9wMC&pg=PA254&lpg=PA254&dq=heuristic+text+main+idea+extraction&source=bl&ots=WQ_MCaf5Xe&sig=FGjG8ZqOAXeLevXJ5fx4TGPJWKU&hl=nl&sa=X&ved=0ahUKEwj7i_aDo5fcAhVQDewKHemZBNAQ6AEIYzAG#v=onepage&q=heuristic%20text%20main%20idea%20extraction&f=false
+    #http://www.cs.columbia.edu/~gmw/candidacy/Fukumotoetal97.pdf
+    #https://stackoverflow.com/questions/5025426/heuristic-approaches-to-finding-main-content
+    #https://news.ycombinator.com/item?id=2344049
+    
     import scipy.cluster.hierarchy as sch
     import pylab
     # Compute and plot dendrogram.
@@ -278,7 +271,7 @@ if __name__ == '__main__':
     print(len(data))
     al, nor, fd = processingData.allrecordsLemmatization(processingData.allrecordsPreparation(data))
     wordimportance = processingData.wordimportance_var2(nor,fd)
-    #ordimportance = processingData.wordimportance_var3(nor,fd, cleaningtext, gensim)
+    #wordimportance = processingData.wordimportance_var3(nor,fd, cleaningtext, gensim)
     
     #lda_model, lsi_model = gensim_models(nor, fd, wordimportance)
     #lda_model, lsi_model = gensim_models2(nor, fd, wordimportance)
